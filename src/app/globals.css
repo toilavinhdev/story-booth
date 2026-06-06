@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  /* Tông ấm, dịu — hợp chủ đề gia đình */
-  --background: #fdf8f3;
-  --foreground: #2b2724;
-  --accent: #b4543a;
+  /* Nền sáng ấm, thơ — bám theo demo "Gương Màn Hình" */
+  --background: #fdf9f2;
+  --foreground: #3a322b;
+  --accent: #e0a52e; /* vàng/gold */
 }
 
 @theme inline {
@@ -13,14 +13,6 @@
   --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1a1714;
-    --foreground: #ede7e0;
-    --accent: #e08a6f;
-  }
 }
 
 body {

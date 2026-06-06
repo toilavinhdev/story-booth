@@ -143,18 +143,36 @@ export function RecordingFlow() {
 
   if (step === "intro") {
     return (
-      <Card>
-        <h1 className="text-2xl font-semibold">story-booth</h1>
-        <p className="text-foreground/60">
-          Hãy chia sẻ câu trả lời của bạn về gia đình qua {QUESTIONS.length} câu hỏi (~5 phút). Mỗi
-          câu khoảng 1 phút, video sẽ tự ghi liên tục.
+      <div className="mx-auto flex max-w-md flex-col items-center gap-5 text-center">
+        <div className="flex gap-2 text-2xl" aria-hidden>
+          <span className="-rotate-12">✨</span>
+          <span>🌸</span>
+          <span className="-rotate-6">🪞</span>
+          <span>🦋</span>
+          <span className="rotate-6">💗</span>
+          <span className="rotate-12">🌟</span>
+        </div>
+
+        <h1 className="font-serif text-4xl font-semibold tracking-tight">Gương Màn Hình</h1>
+
+        <p className="text-lg leading-relaxed text-foreground/70">
+          Chiếc gương đầu tiên hôm nay
+          <br />
+          không treo trên tường.
+          <br />
+          Nó nằm trong túi của bạn. ✨
         </p>
+
+        <p className="text-sm text-foreground/50">
+          {QUESTIONS.length} câu hỏi · khoảng 5 phút bên gia đình
+        </p>
+
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Tên của bạn"
-          className="w-full rounded-lg border border-foreground/20 px-4 py-2.5"
+          className="w-full rounded-full border border-foreground/20 bg-white/60 px-5 py-2.5 text-center"
         />
         <label className="flex items-start gap-2 text-left text-sm text-foreground/60">
           <input
@@ -170,9 +188,9 @@ export function RecordingFlow() {
           </span>
         </label>
         <PrimaryButton onClick={handleContinue} disabled={!name.trim() || !consent}>
-          Tiếp tục
+          🌟 Bắt Đầu
         </PrimaryButton>
-      </Card>
+      </div>
     );
   }
 
@@ -234,7 +252,7 @@ export function RecordingFlow() {
   if (step === "confirm") {
     return (
       <Card>
-        <h2 className="text-xl font-semibold">Hoàn tất ghi hình</h2>
+        <h2 className="font-serif text-2xl font-semibold">Hoàn tất ghi hình</h2>
         <p className="text-foreground/60">
           Cảm ơn bạn đã trả lời. Nhấn &quot;Gửi&quot; để gửi câu trả lời của bạn.
         </p>
@@ -263,8 +281,11 @@ export function RecordingFlow() {
   // done
   return (
     <Card>
-      <h2 className="text-xl font-semibold">Đã gửi thành công 🎉</h2>
-      <p className="text-foreground/60">Cảm ơn bạn đã chia sẻ.</p>
+      <div className="text-3xl" aria-hidden>
+        🌟💗✨
+      </div>
+      <h2 className="font-serif text-2xl font-semibold">Đã gửi thành công</h2>
+      <p className="text-foreground/60">Cảm ơn bạn đã chia sẻ một khoảnh khắc về gia đình. 💛</p>
     </Card>
   );
 }
@@ -290,7 +311,7 @@ function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="rounded-full bg-accent px-8 py-2.5 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="rounded-full bg-accent px-8 py-2.5 font-semibold text-foreground shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
     >
       {children}
     </button>

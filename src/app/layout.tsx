@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "story-booth",
+  title: "Gương Màn Hình",
   description: "Ghi lại câu trả lời của bạn về gia đình.",
 };
 
