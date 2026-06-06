@@ -143,11 +143,11 @@ export function RecordingFlow() {
     return (
       <div className="mx-auto flex w-full max-w-md flex-col items-center gap-6 px-2 text-center">
         {/* icon gương tròn, phát sáng động */}
-        <div className="glow flex h-24 w-24 items-center justify-center rounded-full bg-white text-4xl ring-1 ring-white/70">
-          🪞
-        </div>
+        {/*<div className="glow flex h-24 w-24 items-center justify-center rounded-full bg-white text-4xl ring-1 ring-white/70">*/}
+        {/*  🪞*/}
+        {/*</div>*/}
 
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Gương Màn Hình</h1>
+        {/*<h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Gương Màn Hình</h1>*/}
 
         <p className="text-base leading-relaxed text-foreground/60 sm:text-lg">
           Chiếc gương đầu tiên hôm nay
