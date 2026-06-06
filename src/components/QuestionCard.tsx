@@ -15,7 +15,9 @@ export function QuestionCard({ index, total, text, secondsLeft }: Props) {
           Câu {index + 1}/{total} · {secondsLeft}s
         </span>
       </div>
-      <p className="text-lg font-medium text-white drop-shadow sm:text-2xl">{text}</p>
+      <p className="self-start rounded-xl bg-black/55 px-4 py-2 text-lg font-medium text-white sm:text-2xl">
+        {text}
+      </p>
     </div>
   );
 }
