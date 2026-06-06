@@ -29,6 +29,7 @@ export function RecordingFlow() {
   const [name, setName] = useState("");
   const [consent, setConsent] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [leftScreen, setLeftScreen] = useState(false);
 
   const [qIndex, setQIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(SECONDS_PER_QUESTION);
@@ -85,6 +86,7 @@ export function RecordingFlow() {
         setQIndex(0);
         deadlineRef.current = Date.now() + SECONDS_PER_QUESTION * 1000;
         setSecondsLeft(SECONDS_PER_QUESTION);
+        setLeftScreen(false);
         setStep("recording");
       } else {
         setCount(remaining);
@@ -103,6 +105,24 @@ export function RecordingFlow() {
     }, 250);
     return () => clearInterval(id);
   }, [step, handleNext]);
+
+  // D1: cảnh báo khi đóng/refresh tab lúc đang ghi hoặc đang gửi.
+  useEffect(() => {
+    if (step !== "recording" && step !== "uploading") return;
+    const handler = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [step]);
+
+  // D2: phát hiện rời màn hình (khóa máy / chuyển tab / cuộc gọi) khi đang ghi.
+  useEffect(() => {
+    if (step !== "recording") return;
+    const handler = () => {
+      if (document.hidden) setLeftScreen(true);
+    };
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, [step]);
 
   const handleSend = useCallback(async () => {
     if (!recordedBlob) return;
@@ -200,6 +220,13 @@ export function RecordingFlow() {
           <PrimaryButton onClick={handleNext}>{isLast ? "Hoàn thành" : "Câu tiếp"}</PrimaryButton>
           <SecondaryButton onClick={finish}>Kết thúc</SecondaryButton>
         </div>
+        {leftScreen ? (
+          <p className="text-sm font-medium text-accent">
+            Bạn vừa rời màn hình — bản ghi có thể đã bị gián đoạn.
+          </p>
+        ) : (
+          <p className="text-sm text-foreground/40">Đừng rời màn hình khi đang ghi nhé.</p>
+        )}
       </div>
     );
   }
@@ -263,7 +290,7 @@ function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="rounded-full bg-foreground px-8 py-2.5 font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="rounded-full bg-accent px-8 py-2.5 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
     >
       {children}
     </button>

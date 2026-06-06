@@ -178,12 +178,12 @@ GOOGLE_DRIVE_FOLDER_ID=
 
 ## 8. Các bước triển khai (phases)
 
-- **P0 — Khởi tạo**: tạo Next.js + TS + Tailwind, dựng cấu trúc thư mục, định nghĩa `StorageAdapter`.
-- **P1 — Ghi hình**: `useRecorder` (getUserMedia + MediaRecorder), `PermissionGate`, `Recorder`, preview.
-- **P2 — Flow câu hỏi**: state machine idle→…→done, `QuestionCard`, danh sách câu hỏi cố định.
-- **P3 — Upload Cloudinary**: `CloudinaryAdapter`, `UploadStatus`, retry khi lỗi.
-- **P4 — Hoàn thiện UI**: styling theo demo, responsive, mobile (iOS) check.
-- **P5 — Deploy Vercel**: cấu hình env, kiểm tra HTTPS camera/mic thật trên điện thoại.
+- [x] **P0 — Khởi tạo**: Next.js + TS + Tailwind, cấu trúc thư mục, `StorageAdapter`.
+- [x] **P1 — Ghi hình**: `useRecorder` (getUserMedia + MediaRecorder), `PermissionGate`, `Recorder`, preview.
+- [x] **P2 — Flow câu hỏi**: state machine intro→…→done, `QuestionCard`, câu hỏi cố định.
+- [x] **P3 — Upload Cloudinary**: `CloudinaryAdapter`, `UploadStatus`, tên file + metadata, retry.
+- [x] **P4 — Hoàn thiện UI**: tông màu ấm, responsive, cảnh báo đóng tab (D1) + rời màn hình (D2).
+- [ ] **P5 — Deploy Vercel** (khách tự làm): cấu hình env, kiểm tra HTTPS camera/mic trên điện thoại.
 - **P6 (sau) — Google Drive**: viết `GoogleDriveAdapter` + `api/upload/route.ts` (service account, resumable upload), đổi `NEXT_PUBLIC_STORAGE_PROVIDER=google-drive`.
 
 ---
