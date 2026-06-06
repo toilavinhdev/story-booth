@@ -63,8 +63,9 @@ export function useRecorder() {
         video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: true,
       });
-      streamRef.current = s;
-      setStream(s);
+      streamRef.current = s; // stream gốc (đủ video + audio) — dùng để GHI
+      // Preview chỉ gồm track video → iOS không hiện "Now Playing / Trực tiếp".
+      setStream(new MediaStream(s.getVideoTracks()));
       setStatus("ready");
     } catch (err) {
       const e = err as DOMException;

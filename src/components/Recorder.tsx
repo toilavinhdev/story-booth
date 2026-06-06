@@ -22,7 +22,15 @@ export function Recorder({ stream, recording, overlay }: Props) {
 
   useEffect(() => {
     const el = videoRef.current;
-    if (el && stream) el.srcObject = stream;
+    if (!el) return;
+    // Ép phát inline trên iOS Safari (tránh tự nhảy fullscreen che mất câu hỏi).
+    el.setAttribute("playsinline", "true");
+    el.setAttribute("webkit-playsinline", "true");
+    el.muted = true;
+    if (stream) {
+      el.srcObject = stream;
+      el.play().catch(() => {});
+    }
   }, [stream]);
 
   useEffect(() => {
@@ -33,7 +41,7 @@ export function Recorder({ stream, recording, overlay }: Props) {
   }, [recording]);
 
   return (
-    <div className="relative aspect-[9/16] max-h-[72vh] w-full max-w-[22rem] overflow-hidden rounded-3xl bg-black shadow-xl">
+    <div className="relative aspect-[9/16] max-h-[70svh] w-full max-w-[22rem] overflow-hidden rounded-3xl bg-black shadow-xl">
       {/* Không lật gương: preview khớp đúng với video ghi ra (tránh cảm giác "ngược cam") */}
       <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
 
