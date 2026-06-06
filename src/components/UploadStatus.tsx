@@ -25,7 +25,7 @@ export function UploadStatus({ state, error, onRetry, onBack }: Props) {
       <div className="flex gap-3">
         <button
           onClick={onRetry}
-          className="rounded-full bg-accent px-8 py-2.5 font-semibold text-foreground shadow-sm transition-opacity hover:opacity-90"
+          className="rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 px-8 py-2.5 font-semibold text-white shadow-lg shadow-violet-300/40 transition hover:opacity-90"
         >
           Thử lại
         </button>

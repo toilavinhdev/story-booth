@@ -143,28 +143,31 @@ export function RecordingFlow() {
 
   if (step === "intro") {
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-5 text-center">
-        <div className="flex gap-2 text-2xl" aria-hidden>
-          <span className="-rotate-12">✨</span>
-          <span>🌸</span>
-          <span className="-rotate-6">🪞</span>
-          <span>🦋</span>
-          <span className="rotate-6">💗</span>
-          <span className="rotate-12">🌟</span>
+      <div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-6 px-2 text-center">
+        {/* sparkle trang trí mờ */}
+        <span className="pointer-events-none absolute left-2 top-24 text-2xl text-amber-300/50" aria-hidden>
+          ✦
+        </span>
+        <span className="pointer-events-none absolute right-4 top-40 text-xl text-pink-300/50" aria-hidden>
+          ✦
+        </span>
+        <span className="pointer-events-none absolute bottom-8 left-10 text-lg text-violet-300/50" aria-hidden>
+          ✦
+        </span>
+
+        {/* icon gương tròn */}
+        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white text-4xl shadow-lg shadow-violet-200/60 ring-1 ring-white/70">
+          🪞
         </div>
 
-        <h1 className="font-serif text-4xl font-semibold tracking-tight">Gương Màn Hình</h1>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Gương Màn Hình</h1>
 
-        <p className="text-lg leading-relaxed text-foreground/70">
+        <p className="text-base leading-relaxed text-foreground/60 sm:text-lg">
           Chiếc gương đầu tiên hôm nay
           <br />
           không treo trên tường.
           <br />
-          Nó nằm trong túi của bạn. ✨
-        </p>
-
-        <p className="text-sm text-foreground/50">
-          {QUESTIONS.length} câu hỏi · khoảng 5 phút bên gia đình
+          <span className="font-semibold text-foreground/80">Nó nằm trong túi của bạn. ✨</span>
         </p>
 
         <input
@@ -172,9 +175,9 @@ export function RecordingFlow() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Tên của bạn"
-          className="w-full rounded-full border border-foreground/20 bg-white/60 px-5 py-2.5 text-center"
+          className="w-full rounded-full border border-foreground/15 bg-white/70 px-5 py-2.5 text-center outline-none focus:border-accent"
         />
-        <label className="flex items-start gap-2 text-left text-sm text-foreground/60">
+        <label className="flex items-start gap-2 text-left text-sm text-foreground/55">
           <input
             type="checkbox"
             checked={consent}
@@ -188,7 +191,7 @@ export function RecordingFlow() {
           </span>
         </label>
         <PrimaryButton onClick={handleContinue} disabled={!name.trim() || !consent}>
-          🌟 Bắt Đầu
+          🌟 Bắt đầu
         </PrimaryButton>
       </div>
     );
@@ -239,7 +242,7 @@ export function RecordingFlow() {
           <SecondaryButton onClick={finish}>Kết thúc</SecondaryButton>
         </div>
         {leftScreen ? (
-          <p className="text-sm font-medium text-accent">
+          <p className="text-sm font-medium text-red-600">
             Bạn vừa rời màn hình — bản ghi có thể đã bị gián đoạn.
           </p>
         ) : (
@@ -252,7 +255,7 @@ export function RecordingFlow() {
   if (step === "confirm") {
     return (
       <Card>
-        <h2 className="font-serif text-2xl font-semibold">Hoàn tất ghi hình</h2>
+        <h2 className="text-2xl font-bold">Hoàn tất ghi hình</h2>
         <p className="text-foreground/60">
           Cảm ơn bạn đã trả lời. Nhấn &quot;Gửi&quot; để gửi câu trả lời của bạn.
         </p>
@@ -284,7 +287,7 @@ export function RecordingFlow() {
       <div className="text-3xl" aria-hidden>
         🌟💗✨
       </div>
-      <h2 className="font-serif text-2xl font-semibold">Đã gửi thành công</h2>
+      <h2 className="text-2xl font-bold">Đã gửi thành công</h2>
       <p className="text-foreground/60">Cảm ơn bạn đã chia sẻ một khoảnh khắc về gia đình. 💛</p>
     </Card>
   );
@@ -311,7 +314,7 @@ function PrimaryButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="rounded-full bg-accent px-8 py-2.5 font-semibold text-foreground shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 px-8 py-3 font-semibold text-white shadow-lg shadow-violet-300/40 transition hover:opacity-90 disabled:opacity-50"
     >
       {children}
     </button>

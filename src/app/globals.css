@@ -1,10 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  /* Nền sáng ấm, thơ — bám theo demo "Gương Màn Hình" */
-  --background: #fdf9f2;
-  --foreground: #3a322b;
-  --accent: #e0a52e; /* vàng/gold */
+  --background: #f1ecfb;
+  --foreground: #2b2740;
+  --accent: #7c5cff; /* tím */
 }
 
 @theme inline {
@@ -16,7 +15,9 @@
 }
 
 body {
-  background: var(--background);
+  /* Nền pastel dịu — bám theo demo "Gương Màn Hình" */
+  background: linear-gradient(160deg, #e9f1ff 0%, #f1e9fd 45%, #fdeaf3 100%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
