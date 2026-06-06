@@ -42,8 +42,14 @@ export function Recorder({ stream, recording, overlay }: Props) {
 
   return (
     <div className="relative aspect-[9/16] max-h-[70svh] w-full max-w-[22rem] overflow-hidden rounded-3xl bg-black shadow-xl">
-      {/* Không lật gương: preview khớp đúng với video ghi ra (tránh cảm giác "ngược cam") */}
-      <video ref={videoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
+      {/* Lật gương kiểu selfie cho preview (tự nhiên với người dùng) */}
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        className="h-full w-full -scale-x-100 object-cover"
+      />
 
       {recording && (
         <div className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1 text-sm font-medium text-white">
