@@ -100,6 +100,10 @@ export function useRecorder() {
       const type = mimeTypeRef.current || "video/webm";
       setRecordedBlob(new Blob(chunksRef.current, { type }));
       setDurationMs(Date.now() - startedAtRef.current);
+      // Tắt camera/mic ngay khi ghi xong — không để chạy ngầm (chấm xanh vẫn sáng).
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      setStream(null);
       setStatus("stopped");
     };
 
