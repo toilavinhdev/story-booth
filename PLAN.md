@@ -120,9 +120,10 @@ idle
                     │   ├ hết 60s (hoặc bấm "Câu tiếp") → i++ → đổi câu (KHÔNG dừng ghi)
                     │   └ lặp tới khi hết câu cuối
                     └─(hết câu cuối / bấm "Kết thúc")→ processing  [stop → đóng gói 1 blob]
-                          └─→ uploading  [adapter.upload() — 1 file]
-                                ├─(ok)→ done
-                                └─(lỗi)→ error  [cho retry upload, blob giữ trong memory]
+                          └─→ confirm  [hiện nút "Gửi" — KHÔNG xem lại video]
+                                └─(bấm "Gửi")→ uploading  [adapter.upload() — 1 file]
+                                      ├─(ok)→ done  ["Đã gửi thành công"]
+                                      └─(lỗi)→ error  [retry, hoặc quay lại; blob giữ trong memory]
 ```
 
 Điểm mấu chốt: **`MediaRecorder` chỉ start 1 lần và stop 1 lần.** Việc đổi câu hỏi chỉ là
@@ -187,60 +188,47 @@ GOOGLE_DRIVE_FOLDER_ID=
 
 ---
 
-## 9. Checklist chốt với khách hàng
+## 9. Checklist — ĐÃ CHỐT VỚI KHÁCH
 
-> Mỗi mục có **Đề xuất** sẵn — khách chỉ cần duyệt hoặc đổi. `[x]` = đã chốt, `[ ]` = chờ chốt.
+> `[x]` = làm trong MVP · `[~]` = phase sau / không làm.
 
-### Đã chốt
-- [x] **Flow câu hỏi**: 1 video liên tục, câu hỏi tự nhảy mỗi ~1 phút, cuối phiên upload 1 file.
-- [x] **Số câu + nội dung**: 5 câu (xem mục 6), 60s/câu, tổng ~5 phút.
+### Flow lõi
+- [x] **1 video liên tục**, câu hỏi tự nhảy mỗi ~1 phút, cuối phiên upload 1 file.
+- [x] **5 câu** (xem mục 6), 60s/câu, tổng ~5 phút.
 
 ### A. Luồng & tương tác
-- [ ] **A1. Nút "Câu tiếp"**: 60s tự nhảy — có cho bấm qua sớm không?
-      → *Đề xuất: CÓ nút "Câu tiếp" (trả lời xong qua luôn, vẫn auto sau 60s).*
-- [ ] **A2. Đếm ngược trước khi ghi**: hiện 3-2-1 cho người ta sẵn sàng?
-      → *Đề xuất: CÓ, đếm ngược 3 giây.*
-- [ ] **A3. Màn intro**: giới thiệu "đây là gì, mất ~5 phút, 5 câu" trước khi bắt đầu?
-      → *Đề xuất: CÓ, 1 màn hình intro ngắn.*
-- [ ] **A4. Màn cảm ơn**: sau khi gửi xong hiện lời cảm ơn + cho ghi phiên mới?
-      → *Đề xuất: CÓ.*
-- [ ] **A5. Đọc câu hỏi bằng giọng nói (TTS)**: vì người nhìn camera, không nhìn màn hình.
-      → *Đề xuất: PHASE SAU (nice-to-have).*
+- [x] **A1. Nút "Câu tiếp"**: có — bấm qua sớm được, vẫn auto sau 60s.
+- [x] **A2. Đếm ngược 3-2-1** trước khi ghi.
+- [x] **A3. Màn intro** ngắn (đây là gì, ~5 phút, 5 câu).
+- [~] **A4. Màn cảm ơn (cầu kỳ + ghi phiên mới)**: PHASE SAU. MVP chỉ hiện thông báo
+      "Đã gửi thành công" đơn giản.
+- [~] **A5. Đọc câu hỏi bằng TTS**: PHASE SAU.
 
 ### B. Người dùng & quyền riêng tư
-- [ ] **B1. Thu thông tin người dùng**: ẩn danh, hay hỏi tên/email trước?
-      → *Đề xuất: hỏi TÊN (không bắt buộc email) để gắn vào tên file/metadata.*
-- [ ] **B2. Đồng ý & quyền riêng tư (consent)**: thông báo thu để làm gì + ô tick "Tôi đồng ý"?
-      → *Đề xuất: CÓ (thu video nhận diện danh tính → nên có về mặt pháp lý/tin tưởng).*
-      → **Cần khách cung cấp**: nội dung thông báo (mục đích thu, lưu ở đâu, ai xem, lưu bao lâu).
+- [x] **B1. Hỏi TÊN** trước khi bắt đầu (không bắt buộc email) → gắn vào tên file/metadata.
+- [x] **B2. Consent**: có thông báo thu + ô tick "Tôi đồng ý" trước khi ghi.
+      → **Còn chờ khách cung cấp nội dung thông báo** (mục đích, lưu ở đâu, ai xem, lưu bao lâu).
+      → *Tạm dùng văn bản placeholder cho tới khi khách gửi nội dung chính thức.*
 
 ### C. Xử lý sau khi ghi
-- [ ] **C1. Xem lại trước khi gửi**: cho xem lại + "Ghi lại"/"Gửi", hay ghi xong gửi luôn?
-      → *Đề xuất: CÓ xem lại trước khi gửi.*
-- [ ] **C2. Fallback khi upload lỗi**: cho tải video về máy nếu mạng lỗi?
-      → *Đề xuất: CÓ (retry + nút tải về) — tránh mất công ghi.*
+- [x] **C1. KHÔNG xem lại**. Ghi xong hiện 1 nút **"Gửi"** để xác nhận → upload luôn.
+- [x] **C2. Upload lỗi**: cho **retry**; nếu vẫn lỗi thì **quay lại** (KHÔNG có nút tải về).
 
-### D. Độ tin cậy & an toàn dữ liệu (kỹ thuật)
-- [ ] **D1. Cảnh báo đóng tab khi đang ghi/upload** (`beforeunload`).
-      → *Đề xuất: CÓ — bắt buộc, tránh mất video.*
-- [ ] **D2. Phát hiện rời màn hình trên mobile** (khóa máy / cuộc gọi / chuyển tab làm dừng ghi).
-      → *Đề xuất: CÓ cảnh báo "đừng rời màn hình khi đang ghi".*
-- [ ] **D3. Xử lý từ chối quyền / không có camera-mic**: màn hướng dẫn bật lại quyền.
-      → *Đề xuất: CÓ — bắt buộc.*
+### D. Độ tin cậy & an toàn dữ liệu
+- [x] **D1. Cảnh báo đóng tab** khi đang ghi/upload (`beforeunload`).
+- [x] **D2. Cảnh báo rời màn hình** trên mobile (khóa máy / cuộc gọi / chuyển tab).
+- [x] **D3. Xử lý từ chối quyền / không có camera-mic** (màn hướng dẫn bật lại).
 
 ### E. Vận hành & quản lý
-- [ ] **E1. Mã truy cập (access code)**: chặn người lạ upload làm đầy storage free?
-      → *Đề xuất: CÓ 1 mã đơn giản nếu link công khai; bỏ nếu chỉ dùng nội bộ/sự kiện.*
-- [ ] **E2. Quy ước tên file + metadata**: `{ngày-giờ}_{tên}_{id}.webm` + thời lượng/thiết bị.
-      → *Đề xuất: theo mẫu trên.*
-- [ ] **E3. Camera mặc định**: trước (selfie) hay sau?
-      → *Đề xuất: camera TRƯỚC, ~720p để cân bằng dung lượng.*
-- [ ] **E4. Nơi lưu chính thức**: Cloudinary (mặc định) hay bắt buộc Google Drive?
-      → *Đề xuất: Cloudinary cho MVP; Google Drive làm phase sau (đã tách adapter).*
+- [~] **E1. Mã truy cập**: KHÔNG làm (chỉ là demo).
+- [x] **E2. Tên file + metadata**: `{ngày-giờ}_{tên}_{id}.webm` + thời lượng/thiết bị.
+- [x] **E3. Camera TRƯỚC** (selfie), ~720p.
+- [x] **E4. Lưu ở Cloudinary** (Google Drive để phase sau, đã tách adapter).
 
-### Tóm tắt phạm vi MVP (đề xuất)
-Làm: A1–A4, B1–B2, C1–C2, D1–D3, E2–E3 (+ E1 nếu link công khai).
-Để phase sau: A5 (TTS), E4 (Google Drive), metadata nâng cao.
+### Tóm tắt phạm vi MVP
+Làm: A1–A3, B1–B2, C1–C2, D1–D3, E2–E4.
+Phase sau: A4 (màn cảm ơn cầu kỳ), A5 (TTS), Google Drive adapter.
+Đang chờ khách: **nội dung consent (B2)** — code trước bằng placeholder.
 
 ---
 
