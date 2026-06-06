@@ -4,10 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PermissionGate } from "./PermissionGate";
 import { Recorder } from "./Recorder";
 import { QuestionCard } from "./QuestionCard";
-import { useRecorder } from "@/hooks/useRecorder";
+import { UploadStatus } from "./UploadStatus";
+import { fileExtension, useRecorder } from "@/hooks/useRecorder";
 import { QUESTIONS, SECONDS_PER_QUESTION } from "@/lib/questions";
+import { getStorageAdapter } from "@/lib/storage";
+import { buildUploadMeta } from "@/lib/upload";
 
-type Step = "intro" | "setup" | "countdown" | "recording" | "confirm" | "done";
+type Step = "intro" | "setup" | "countdown" | "recording" | "confirm" | "uploading" | "error" | "done";
 
 export function RecordingFlow() {
   const {
@@ -15,6 +18,8 @@ export function RecordingFlow() {
     error,
     stream,
     recordedBlob,
+    durationMs,
+    mimeType,
     requestPermission,
     start: recStart,
     stop: recStop,
@@ -23,6 +28,7 @@ export function RecordingFlow() {
   const [step, setStep] = useState<Step>("intro");
   const [name, setName] = useState("");
   const [consent, setConsent] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const [qIndex, setQIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(SECONDS_PER_QUESTION);
@@ -98,10 +104,20 @@ export function RecordingFlow() {
     return () => clearInterval(id);
   }, [step, handleNext]);
 
-  // P3: thay bằng upload thật qua getStorageAdapter().
-  const handleSend = () => {
-    setStep("done");
-  };
+  const handleSend = useCallback(async () => {
+    if (!recordedBlob) return;
+    setUploadError(null);
+    setStep("uploading");
+    try {
+      const ext = fileExtension(mimeType);
+      const meta = buildUploadMeta(name, mimeType, ext, durationMs);
+      await getStorageAdapter().upload(recordedBlob, meta);
+      setStep("done");
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Lỗi không xác định.");
+      setStep("error");
+    }
+  }, [recordedBlob, mimeType, name, durationMs]);
 
   // --- Render theo bước ---
 
@@ -199,6 +215,21 @@ export function RecordingFlow() {
           {recordedBlob ? "Gửi" : "Đang xử lý…"}
         </PrimaryButton>
       </Card>
+    );
+  }
+
+  if (step === "uploading") {
+    return <UploadStatus state="uploading" onRetry={handleSend} onBack={() => setStep("confirm")} />;
+  }
+
+  if (step === "error") {
+    return (
+      <UploadStatus
+        state="error"
+        error={uploadError}
+        onRetry={handleSend}
+        onBack={() => setStep("confirm")}
+      />
     );
   }
 
