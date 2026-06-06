@@ -39,8 +39,6 @@ export function RecordingFlow() {
   const countdownRef = useRef(0); // hạn chót đếm ngược 3-2-1
   const qIndexRef = useRef(0);
 
-  const isLast = qIndex >= QUESTIONS.length - 1;
-
   // intro -> setup (xin quyền)
   const handleContinue = () => {
     setStep("setup");
@@ -143,20 +141,9 @@ export function RecordingFlow() {
 
   if (step === "intro") {
     return (
-      <div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-6 px-2 text-center">
-        {/* sparkle trang trí mờ */}
-        <span className="pointer-events-none absolute left-2 top-24 text-2xl text-amber-300/50" aria-hidden>
-          ✦
-        </span>
-        <span className="pointer-events-none absolute right-4 top-40 text-xl text-pink-300/50" aria-hidden>
-          ✦
-        </span>
-        <span className="pointer-events-none absolute bottom-8 left-10 text-lg text-violet-300/50" aria-hidden>
-          ✦
-        </span>
-
-        {/* icon gương tròn */}
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white text-4xl shadow-lg shadow-violet-200/60 ring-1 ring-white/70">
+      <div className="mx-auto flex w-full max-w-md flex-col items-center gap-6 px-2 text-center">
+        {/* icon gương tròn, phát sáng động */}
+        <div className="glow flex h-24 w-24 items-center justify-center rounded-full bg-white text-4xl ring-1 ring-white/70">
           🪞
         </div>
 
@@ -223,24 +210,30 @@ export function RecordingFlow() {
   }
 
   if (step === "recording") {
+    const fill = (SECONDS_PER_QUESTION - secondsLeft) / SECONDS_PER_QUESTION;
     return (
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-3">
         <Recorder
           stream={stream}
           recording
           overlay={
-            <QuestionCard
-              index={qIndex}
-              total={QUESTIONS.length}
-              text={QUESTIONS[qIndex].text}
-              secondsLeft={secondsLeft}
-            />
+            <>
+              <QuestionCard
+                index={qIndex}
+                total={QUESTIONS.length}
+                text={QUESTIONS[qIndex].text}
+                fill={fill}
+              />
+              {/* Chạm vào khung để sang câu kế (tự sang khi hết ~10s) */}
+              <button
+                type="button"
+                onClick={handleNext}
+                aria-label="Chạm để tiếp tục"
+                className="absolute inset-0"
+              />
+            </>
           }
         />
-        <div className="flex gap-3">
-          <PrimaryButton onClick={handleNext}>{isLast ? "Hoàn thành" : "Câu tiếp"}</PrimaryButton>
-          <SecondaryButton onClick={finish}>Kết thúc</SecondaryButton>
-        </div>
         {leftScreen ? (
           <p className="text-sm font-medium text-red-600">
             Bạn vừa rời màn hình — bản ghi có thể đã bị gián đoạn.
@@ -315,23 +308,6 @@ function PrimaryButton({
       onClick={onClick}
       disabled={disabled}
       className="rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 px-8 py-3 font-semibold text-white shadow-lg shadow-violet-300/40 transition hover:opacity-90 disabled:opacity-50"
-    >
-      {children}
-    </button>
-  );
-}
-
-function SecondaryButton({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="rounded-full border border-foreground/20 px-8 py-2.5 font-medium transition-colors hover:bg-foreground/5"
     >
       {children}
     </button>

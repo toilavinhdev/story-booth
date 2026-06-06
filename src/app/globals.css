@@ -21,3 +21,51 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Icon trang trí nhấp nháy + bồng bềnh (twinkle = opacity, floaty = transform → không xung đột) */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-9px) scale(1.12);
+  }
+}
+.sparkle {
+  animation:
+    twinkle 2.6s ease-in-out infinite,
+    floaty 6s ease-in-out infinite;
+}
+
+/* Vầng sáng dịu cho icon gương ở giữa */
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 8px 30px rgba(124, 92, 255, 0.15);
+    transform: translateY(0);
+  }
+  50% {
+    box-shadow: 0 14px 42px rgba(124, 92, 255, 0.35);
+    transform: translateY(-5px);
+  }
+}
+.glow {
+  animation: glow 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sparkle,
+  .glow {
+    animation: none;
+  }
+}

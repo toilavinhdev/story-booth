@@ -9,4 +9,4 @@ export const QUESTIONS: Question[] = [
   { id: "q5", text: "Sau tất cả, gia đình có ý nghĩa như thế nào đối với bạn?" },
 ];
 
-export const SECONDS_PER_QUESTION = 60;
+export const SECONDS_PER_QUESTION = 10;

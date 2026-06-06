@@ -33,7 +33,7 @@ export function Recorder({ stream, recording, overlay }: Props) {
   }, [recording]);
 
   return (
-    <div className="relative aspect-video w-full max-w-2xl overflow-hidden rounded-2xl bg-black">
+    <div className="relative aspect-[9/16] max-h-[72vh] w-full max-w-[22rem] overflow-hidden rounded-3xl bg-black shadow-xl">
       {/* -scale-x-100: hiệu ứng gương cho camera trước (chỉ preview, file ghi ra không bị lật) */}
       <video
         ref={videoRef}
