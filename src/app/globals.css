@@ -10,8 +10,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-quicksand);
 }
 
 body {
@@ -63,9 +62,26 @@ body {
   animation: glow 4s ease-in-out infinite;
 }
 
+/* Ripple ring khi bấm nút */
+@keyframes btn-ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(124, 92, 255, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(124, 92, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(124, 92, 255, 0);
+  }
+}
+.btn-ripple {
+  animation: btn-ripple 0.45s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sparkle,
-  .glow {
+  .glow,
+  .btn-ripple {
     animation: none;
   }
 }
