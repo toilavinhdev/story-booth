@@ -60,7 +60,11 @@ export function Recorder({ stream, recording, overlay }: Props) {
         </div>
       )}
 
-      {overlay && <div className="absolute inset-0">{overlay}</div>}
+      {overlay && (
+        <div className="absolute inset-0 transition-opacity duration-500">
+          {overlay}
+        </div>
+      )}
     </div>
   );
 }

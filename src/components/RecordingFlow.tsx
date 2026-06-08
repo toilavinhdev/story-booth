@@ -241,27 +241,35 @@ export function RecordingFlow() {
     );
   }
 
-  if (step === "setup") {
-    return (
-      <PermissionGate status={status} error={error} onRequest={requestPermission}>
-        <div className="flex flex-col items-center gap-4">
-          <Recorder stream={stream} recording={false} />
-          <PrimaryButton onClick={handleBegin}>🦋 Bắt đầu</PrimaryButton>
-        </div>
-      </PermissionGate>
-    );
-  }
+  if (step === "setup" || step === "countdown") {
+    const isReady = status === "ready" || status === "recording" || status === "stopped";
 
-  if (step === "countdown") {
+    if (!isReady) {
+      return <PermissionGate status={status} error={error} onRequest={requestPermission}><></></PermissionGate>;
+    }
+
     return (
       <div className="flex flex-col items-center gap-4">
         <Recorder
           stream={stream}
           recording={false}
           overlay={
-            <div className="flex h-full items-center justify-center bg-black/40">
-              <span className="text-7xl font-bold text-white">{count}</span>
-            </div>
+            step === "setup" ? (
+              <button
+                type="button"
+                onClick={handleBegin}
+                className="absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-black/60 via-black/10 to-transparent p-6"
+              >
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-xl font-bold text-white drop-shadow">Bạn đã sẵn sàng chưa?</p>
+                  <p className="text-sm text-white/70">Chạm để bắt đầu 🦋</p>
+                </div>
+              </button>
+            ) : (
+              <div className="flex h-full items-center justify-center bg-black/40">
+                <span className="text-7xl font-bold text-white">{count}</span>
+              </div>
+            )
           }
         />
         <p className="text-sm text-foreground/40">Đừng rời màn hình khi đang ghi nhé.</p>
