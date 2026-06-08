@@ -6,7 +6,7 @@ import { Recorder } from "./Recorder";
 import { QuestionCard } from "./QuestionCard";
 import { UploadStatus } from "./UploadStatus";
 import { fileExtension, useRecorder } from "@/hooks/useRecorder";
-import { QUESTIONS, ROLE_QUESTION_SECONDS, SECONDS_PER_QUESTION } from "@/lib/questions";
+import { CHILD_QUESTIONS, PARENT_QUESTIONS, SECONDS_PER_QUESTION } from "@/lib/questions";
 import { getStorageAdapter } from "@/lib/storage";
 import { buildFileName, buildUploadMeta } from "@/lib/upload";
 
@@ -34,10 +34,12 @@ export function RecordingFlow() {
   const [savedLocally, setSavedLocally] = useState(false);
   const [uploaded, setUploaded] = useState(false);
 
+  const [role, setRole] = useState<"parent" | "child" | null>(null);
+  const roleRef = useRef<"parent" | "child" | null>(null);
   const [rolePhase, setRolePhase] = useState(true);
   const rolePhaseRef = useRef(true);
   const [qIndex, setQIndex] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(ROLE_QUESTION_SECONDS);
+  const [secondsLeft, setSecondsLeft] = useState(SECONDS_PER_QUESTION);
   const [count, setCount] = useState(3);
   const [qFading, setQFading] = useState(false);
 
@@ -69,17 +71,9 @@ export function RecordingFlow() {
 
   // Sang câu kế, hoặc kết thúc nếu là câu cuối. KHÔNG động tới luồng ghi.
   const advanceQuestion = useCallback(() => {
-    if (rolePhaseRef.current) {
-      rolePhaseRef.current = false;
-      setRolePhase(false);
-      qIndexRef.current = 0;
-      setQIndex(0);
-      deadlineRef.current = Date.now() + SECONDS_PER_QUESTION * 1000;
-      setSecondsLeft(SECONDS_PER_QUESTION);
-      return;
-    }
+    const questions = roleRef.current === "parent" ? PARENT_QUESTIONS : CHILD_QUESTIONS;
     const i = qIndexRef.current;
-    if (i >= QUESTIONS.length - 1) {
+    if (i >= questions.length - 1) {
       finish();
       return;
     }
@@ -89,6 +83,22 @@ export function RecordingFlow() {
     deadlineRef.current = Date.now() + SECONDS_PER_QUESTION * 1000;
     setSecondsLeft(SECONDS_PER_QUESTION);
   }, [finish]);
+
+  // User chọn vai trò → chuyển sang câu hỏi đầu tiên.
+  const handleRoleSelect = useCallback((r: "parent" | "child") => {
+    roleRef.current = r;
+    setRole(r);
+    setQFading(true);
+    setTimeout(() => {
+      rolePhaseRef.current = false;
+      setRolePhase(false);
+      qIndexRef.current = 0;
+      setQIndex(0);
+      deadlineRef.current = Date.now() + SECONDS_PER_QUESTION * 1000;
+      setSecondsLeft(SECONDS_PER_QUESTION);
+      setQFading(false);
+    }, 400);
+  }, []);
 
   const handleNext = useCallback(() => {
     setQFading(true);
@@ -110,8 +120,6 @@ export function RecordingFlow() {
         setRolePhase(true);
         qIndexRef.current = 0;
         setQIndex(0);
-        deadlineRef.current = Date.now() + ROLE_QUESTION_SECONDS * 1000;
-        setSecondsLeft(ROLE_QUESTION_SECONDS);
         setLeftScreen(false);
         setStep("recording");
       } else {
@@ -122,9 +130,11 @@ export function RecordingFlow() {
   }, [step, recStart]);
 
   // Trong lúc ghi: đếm lùi thời gian mỗi câu, hết giờ thì tự nhảy câu.
+  // Bỏ qua khi đang ở màn chọn vai trò (không có deadline).
   useEffect(() => {
     if (step !== "recording") return;
     const id = setInterval(() => {
+      if (rolePhaseRef.current) return;
       const remaining = Math.ceil((deadlineRef.current - Date.now()) / 1000);
       if (remaining <= 0) handleNext();
       else setSecondsLeft(remaining);
@@ -157,7 +167,7 @@ export function RecordingFlow() {
     setStep("uploading");
     try {
       const ext = fileExtension(mimeType);
-      const meta = buildUploadMeta(name, mimeType, ext, durationMs);
+      const meta = buildUploadMeta(name, mimeType, ext, durationMs, role ?? undefined);
       await getStorageAdapter().upload(recordedBlob, meta, setUploadPct);
       setUploaded(true);
       setStep("confirm");
@@ -165,7 +175,7 @@ export function RecordingFlow() {
       setUploadError(err instanceof Error ? err.message : "Lỗi không xác định.");
       setStep("error");
     }
-  }, [recordedBlob, mimeType, name, durationMs]);
+  }, [recordedBlob, mimeType, name, durationMs, role]);
 
   const handleSaveLocally = useCallback(() => {
     if (!recordedBlob) return;
@@ -280,29 +290,60 @@ export function RecordingFlow() {
   }
 
   if (step === "recording") {
-    const totalSeconds = rolePhase ? ROLE_QUESTION_SECONDS : SECONDS_PER_QUESTION;
-    const fill = (totalSeconds - secondsLeft) / totalSeconds;
+    const questions = role === "parent" ? PARENT_QUESTIONS : CHILD_QUESTIONS;
+    const fill = (SECONDS_PER_QUESTION - secondsLeft) / SECONDS_PER_QUESTION;
     return (
       <div className="flex flex-col items-center gap-4">
         <Recorder
           stream={stream}
           recording
           overlay={
-            <>
-              <QuestionCard
-                index={rolePhase ? 0 : qIndex + 1}
-                total={QUESTIONS.length + 1}
-                text={rolePhase ? "Bạn là Phụ Huynh hay Con?" : QUESTIONS[qIndex].text}
-                fill={fill}
-                fading={qFading}
-              />
-              <button
-                type="button"
-                onClick={handleNext}
-                aria-label="Chạm để tiếp tục"
-                className="absolute inset-0"
-              />
-            </>
+            rolePhase ? (
+              <div
+                style={{ transition: "opacity 0.4s ease", opacity: qFading ? 0 : 1 }}
+                className="absolute inset-0 flex flex-col items-center justify-end bg-gradient-to-t from-black/85 via-black/20 to-transparent"
+              >
+                <div className="flex w-full flex-col items-center gap-4 p-6 pb-10">
+                  <p className="text-xl font-bold text-white drop-shadow text-center leading-snug">
+                    Bạn là ai trong gia đình?
+                  </p>
+                  <div className="flex w-full gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleRoleSelect("parent")}
+                      className="flex flex-1 flex-col items-center gap-1.5 rounded-2xl border border-white/40 bg-white/20 py-4 font-bold text-white backdrop-blur-sm transition-all duration-150 active:scale-95 active:bg-white/35"
+                    >
+                      <span className="text-3xl">👨‍👩‍👧</span>
+                      <span className="text-base">Phụ huynh</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRoleSelect("child")}
+                      className="flex flex-1 flex-col items-center gap-1.5 rounded-2xl border border-white/40 bg-white/20 py-4 font-bold text-white backdrop-blur-sm transition-all duration-150 active:scale-95 active:bg-white/35"
+                    >
+                      <span className="text-3xl">👦</span>
+                      <span className="text-base">Con</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <QuestionCard
+                  index={qIndex + 1}
+                  total={questions.length + 1}
+                  text={questions[qIndex].text}
+                  fill={fill}
+                  fading={qFading}
+                />
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  aria-label="Chạm để tiếp tục"
+                  className="absolute inset-0"
+                />
+              </>
+            )
           }
         />
         {leftScreen ? (
