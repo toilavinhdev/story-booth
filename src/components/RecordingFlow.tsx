@@ -29,6 +29,7 @@ export function RecordingFlow() {
   const [name, setName] = useState("");
   const [consent, setConsent] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadPct, setUploadPct] = useState(0);
   const [leftScreen, setLeftScreen] = useState(false);
   const [savedLocally, setSavedLocally] = useState(false);
   const [uploaded, setUploaded] = useState(false);
@@ -152,11 +153,12 @@ export function RecordingFlow() {
   const handleSend = useCallback(async () => {
     if (!recordedBlob) return;
     setUploadError(null);
+    setUploadPct(0);
     setStep("uploading");
     try {
       const ext = fileExtension(mimeType);
       const meta = buildUploadMeta(name, mimeType, ext, durationMs);
-      await getStorageAdapter().upload(recordedBlob, meta);
+      await getStorageAdapter().upload(recordedBlob, meta, setUploadPct);
       setUploaded(true);
       setStep("confirm");
     } catch (err) {
@@ -342,7 +344,7 @@ export function RecordingFlow() {
   }
 
   if (step === "uploading") {
-    return <UploadStatus state="uploading" onRetry={handleSend} onBack={() => setStep("confirm")} />;
+    return <UploadStatus state="uploading" pct={uploadPct} onRetry={handleSend} onBack={() => setStep("confirm")} />;
   }
 
   if (step === "error") {

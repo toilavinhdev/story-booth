@@ -27,5 +27,5 @@ export type UploadResult = {
 
 export interface StorageAdapter {
   readonly provider: string;
-  upload(blob: Blob, meta: UploadMeta): Promise<UploadResult>;
+  upload(blob: Blob, meta: UploadMeta, onProgress?: (pct: number) => void): Promise<UploadResult>;
 }

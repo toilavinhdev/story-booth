@@ -2,17 +2,25 @@ import { useState } from "react";
 
 type Props = {
   state: "uploading" | "error";
+  pct?: number;
   error?: string | null;
   onRetry: () => void;
   onBack: () => void;
 };
 
-export function UploadStatus({ state, error, onRetry, onBack }: Props) {
+export function UploadStatus({ state, pct = 0, error, onRetry, onBack }: Props) {
   if (state === "uploading") {
     return (
       <div className="step-in mx-auto flex w-full max-w-sm flex-col items-center gap-5 px-4 pt-32 text-center">
         <span className="h-10 w-10 animate-spin rounded-full border-2 border-foreground/20 border-t-violet-500" />
         <p className="text-base font-semibold text-foreground/55">Đang gửi câu trả lời của bạn…</p>
+        <div className="w-full overflow-hidden rounded-full bg-foreground/10">
+          <div
+            className="h-2 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-300 ease-out"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="text-sm font-semibold text-violet-500">{pct}%</p>
       </div>
     );
   }
