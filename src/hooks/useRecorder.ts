@@ -12,14 +12,16 @@ export type RecorderStatus =
   | "no-device" // không có camera/mic
   | "error"; // lỗi khác
 
-// Chọn định dạng ghi được hỗ trợ: ưu tiên .webm; Safari/iOS sẽ rơi về .mp4.
+// Ưu tiên MP4/H.264 để tương thích iOS/Android. Chrome/Desktop rơi về WebM nếu không hỗ trợ.
 function pickMimeType(): string {
   if (typeof MediaRecorder === "undefined") return "";
   const candidates = [
+    "video/mp4;codecs=h264,aac",
+    "video/mp4;codecs=avc1",
+    "video/mp4",
     "video/webm;codecs=vp9,opus",
     "video/webm;codecs=vp8,opus",
     "video/webm",
-    "video/mp4",
   ];
   return candidates.find((t) => MediaRecorder.isTypeSupported(t)) ?? "";
 }
