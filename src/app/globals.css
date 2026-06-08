@@ -16,9 +16,17 @@
 body {
   /* Ảnh nền "Điều con chưa nói" */
   background: #d6e8f7 url("/background.png") top center / cover no-repeat fixed;
-  min-height: 100svh;
+  min-height: 100vh;
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Ẩn native video controls trên Zalo / WeChat / in-app browsers */
+video::-webkit-media-controls,
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls-overlay-play-button,
+video::-webkit-media-controls-panel {
+  display: none !important;
 }
 
 /* Icon trang trí nhấp nháy + bồng bềnh (twinkle = opacity, floaty = transform → không xung đột) */

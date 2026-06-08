@@ -24,10 +24,14 @@ export function Recorder({ stream, recording, overlay }: Props) {
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
-    // Ép phát inline trên iOS Safari (tránh tự nhảy fullscreen che mất câu hỏi).
+    // Inline playback: iOS Safari + Tencent X5 engine (Zalo, WeChat).
     el.setAttribute("playsinline", "true");
     el.setAttribute("webkit-playsinline", "true");
+    el.setAttribute("x5-video-player-type", "h5");
+    el.setAttribute("x5-playsinline", "true");
+    el.setAttribute("x5-video-player-fullscreen", "false");
     el.muted = true;
+    el.controls = false;
     if (stream) {
       el.srcObject = stream;
       el.play().catch(() => {});
@@ -42,15 +46,16 @@ export function Recorder({ stream, recording, overlay }: Props) {
   }, [recording]);
 
   return (
-    <div className="relative aspect-[9/16] max-h-[80svh] w-full max-w-[32rem] overflow-hidden rounded-3xl bg-black shadow-xl">
+    <div className="relative aspect-[9/16] max-h-[80vh] w-full max-w-[32rem] overflow-hidden rounded-3xl bg-black shadow-xl">
       {/* Lật gương kiểu selfie cho preview (tự nhiên với người dùng) */}
       <video
         ref={videoRef}
         autoPlay
         muted
         playsInline
+        disablePictureInPicture
         onCanPlay={() => setVideoReady(true)}
-        className={`h-full w-full -scale-x-100 object-cover transition-opacity duration-700 ${videoReady ? "opacity-100" : "opacity-0"}`}
+        className={`pointer-events-none h-full w-full -scale-x-100 object-cover transition-opacity duration-700 ${videoReady ? "opacity-100" : "opacity-0"}`}
       />
 
       {recording && (
