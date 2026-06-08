@@ -30,6 +30,7 @@ export function buildUploadMeta(
   mimeType: string,
   ext: string,
   durationMs: number,
+  role?: "parent" | "child",
 ): UploadMeta {
   return {
     fileName: buildFileName(name, ext),
@@ -37,5 +38,6 @@ export function buildUploadMeta(
     userName: name.trim() || undefined,
     durationMs,
     device: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+    role,
   };
 }

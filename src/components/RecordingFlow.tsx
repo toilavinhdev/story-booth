@@ -6,9 +6,9 @@ import { Recorder } from "./Recorder";
 import { QuestionCard } from "./QuestionCard";
 import { UploadStatus } from "./UploadStatus";
 import { fileExtension, useRecorder } from "@/hooks/useRecorder";
-import { QUESTIONS, SECONDS_PER_QUESTION } from "@/lib/questions";
+import { QUESTIONS, ROLE_QUESTION_SECONDS, SECONDS_PER_QUESTION } from "@/lib/questions";
 import { getStorageAdapter } from "@/lib/storage";
-import { buildUploadMeta } from "@/lib/upload";
+import { buildFileName, buildUploadMeta } from "@/lib/upload";
 
 type Step = "intro" | "setup" | "countdown" | "recording" | "confirm" | "uploading" | "error" | "done";
 
@@ -30,9 +30,12 @@ export function RecordingFlow() {
   const [consent, setConsent] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [leftScreen, setLeftScreen] = useState(false);
+  const [savedLocally, setSavedLocally] = useState(false);
 
+  const [rolePhase, setRolePhase] = useState(true);
+  const rolePhaseRef = useRef(true);
   const [qIndex, setQIndex] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(SECONDS_PER_QUESTION);
+  const [secondsLeft, setSecondsLeft] = useState(ROLE_QUESTION_SECONDS);
   const [count, setCount] = useState(3);
 
   const deadlineRef = useRef(0); // hạn chót cho câu hỏi hiện tại
@@ -60,6 +63,15 @@ export function RecordingFlow() {
 
   // Sang câu kế, hoặc kết thúc nếu là câu cuối. KHÔNG động tới luồng ghi.
   const handleNext = useCallback(() => {
+    if (rolePhaseRef.current) {
+      rolePhaseRef.current = false;
+      setRolePhase(false);
+      qIndexRef.current = 0;
+      setQIndex(0);
+      deadlineRef.current = Date.now() + SECONDS_PER_QUESTION * 1000;
+      setSecondsLeft(SECONDS_PER_QUESTION);
+      return;
+    }
     const i = qIndexRef.current;
     if (i >= QUESTIONS.length - 1) {
       finish();
@@ -80,10 +92,12 @@ export function RecordingFlow() {
       if (remaining <= 0) {
         clearInterval(id);
         recStart();
+        rolePhaseRef.current = true;
+        setRolePhase(true);
         qIndexRef.current = 0;
         setQIndex(0);
-        deadlineRef.current = Date.now() + SECONDS_PER_QUESTION * 1000;
-        setSecondsLeft(SECONDS_PER_QUESTION);
+        deadlineRef.current = Date.now() + ROLE_QUESTION_SECONDS * 1000;
+        setSecondsLeft(ROLE_QUESTION_SECONDS);
         setLeftScreen(false);
         setStep("recording");
       } else {
@@ -136,6 +150,18 @@ export function RecordingFlow() {
       setStep("error");
     }
   }, [recordedBlob, mimeType, name, durationMs]);
+
+  const handleSaveLocally = useCallback(() => {
+    if (!recordedBlob) return;
+    const ext = fileExtension(mimeType);
+    const url = URL.createObjectURL(recordedBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = buildFileName(name, ext);
+    a.click();
+    URL.revokeObjectURL(url);
+    setSavedLocally(true);
+  }, [recordedBlob, mimeType, name]);
 
   // --- Render theo bước ---
 
@@ -210,7 +236,8 @@ export function RecordingFlow() {
   }
 
   if (step === "recording") {
-    const fill = (SECONDS_PER_QUESTION - secondsLeft) / SECONDS_PER_QUESTION;
+    const totalSeconds = rolePhase ? ROLE_QUESTION_SECONDS : SECONDS_PER_QUESTION;
+    const fill = (totalSeconds - secondsLeft) / totalSeconds;
     return (
       <div className="flex flex-col items-center gap-3">
         <Recorder
@@ -218,13 +245,22 @@ export function RecordingFlow() {
           recording
           overlay={
             <>
-              <QuestionCard
-                index={qIndex}
-                total={QUESTIONS.length}
-                text={QUESTIONS[qIndex].text}
-                fill={fill}
-              />
-              {/* Chạm vào khung để sang câu kế (tự sang khi hết ~10s) */}
+              {rolePhase ? (
+                <QuestionCard
+                  index={0}
+                  total={1}
+                  text="Bạn là Phụ Huynh hay Con?"
+                  fill={fill}
+                />
+              ) : (
+                <QuestionCard
+                  index={qIndex}
+                  total={QUESTIONS.length}
+                  text={QUESTIONS[qIndex].text}
+                  fill={fill}
+                />
+              )}
+              {/* Chạm vào khung để sang câu kế (tự sang khi hết giờ) */}
               <button
                 type="button"
                 onClick={handleNext}
@@ -250,11 +286,19 @@ export function RecordingFlow() {
       <Card>
         <h2 className="text-2xl font-bold">Hoàn tất ghi hình</h2>
         <p className="text-foreground/60">
-          Cảm ơn bạn đã trả lời. Nhấn &quot;Gửi&quot; để gửi câu trả lời của bạn.
+          Cảm ơn bạn đã trả lời. Bạn có thể gửi video hoặc lưu về máy.
         </p>
         <PrimaryButton onClick={handleSend} disabled={!recordedBlob}>
-          {recordedBlob ? "Gửi" : "Đang xử lý…"}
+          {recordedBlob ? "📤 Gửi" : "Đang xử lý…"}
         </PrimaryButton>
+        <button
+          type="button"
+          onClick={handleSaveLocally}
+          disabled={!recordedBlob}
+          className="rounded-full border border-foreground/20 bg-white/80 px-8 py-3 font-semibold text-foreground/70 transition hover:bg-white disabled:opacity-50"
+        >
+          {savedLocally ? "✅ Đã lưu về máy" : "💾 Lưu về máy"}
+        </button>
       </Card>
     );
   }
@@ -293,6 +337,7 @@ function Card({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
 
 function PrimaryButton({
   children,

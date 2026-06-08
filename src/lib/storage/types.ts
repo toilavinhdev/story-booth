@@ -12,6 +12,8 @@ export type UploadMeta = {
   durationMs?: number;
   /** Thông tin thiết bị/trình duyệt */
   device?: string;
+  /** Vai trò người trả lời */
+  role?: "parent" | "child";
 };
 
 export type UploadResult = {
