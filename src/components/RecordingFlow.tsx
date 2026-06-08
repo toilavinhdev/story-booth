@@ -10,7 +10,7 @@ import { QUESTIONS, ROLE_QUESTION_SECONDS, SECONDS_PER_QUESTION } from "@/lib/qu
 import { getStorageAdapter } from "@/lib/storage";
 import { buildFileName, buildUploadMeta } from "@/lib/upload";
 
-type Step = "intro" | "setup" | "countdown" | "recording" | "confirm" | "uploading" | "error" | "done";
+type Step = "intro" | "name" | "setup" | "countdown" | "recording" | "confirm" | "uploading" | "error" | "done";
 
 export function RecordingFlow() {
   const {
@@ -31,18 +31,23 @@ export function RecordingFlow() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [leftScreen, setLeftScreen] = useState(false);
   const [savedLocally, setSavedLocally] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
 
   const [rolePhase, setRolePhase] = useState(true);
   const rolePhaseRef = useRef(true);
   const [qIndex, setQIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(ROLE_QUESTION_SECONDS);
   const [count, setCount] = useState(3);
+  const [qFading, setQFading] = useState(false);
 
   const deadlineRef = useRef(0); // hạn chót cho câu hỏi hiện tại
   const countdownRef = useRef(0); // hạn chót đếm ngược 3-2-1
   const qIndexRef = useRef(0);
 
-  // intro -> setup (xin quyền)
+  // intro -> name
+  const handleIntro = () => setStep("name");
+
+  // name -> setup (xin quyền)
   const handleContinue = () => {
     setStep("setup");
     requestPermission();
@@ -62,7 +67,7 @@ export function RecordingFlow() {
   }, [recStop]);
 
   // Sang câu kế, hoặc kết thúc nếu là câu cuối. KHÔNG động tới luồng ghi.
-  const handleNext = useCallback(() => {
+  const advanceQuestion = useCallback(() => {
     if (rolePhaseRef.current) {
       rolePhaseRef.current = false;
       setRolePhase(false);
@@ -83,6 +88,14 @@ export function RecordingFlow() {
     deadlineRef.current = Date.now() + SECONDS_PER_QUESTION * 1000;
     setSecondsLeft(SECONDS_PER_QUESTION);
   }, [finish]);
+
+  const handleNext = useCallback(() => {
+    setQFading(true);
+    setTimeout(() => {
+      advanceQuestion();
+      setQFading(false);
+    }, 400);
+  }, [advanceQuestion]);
 
   // Đếm ngược 3-2-1, rồi bắt đầu ghi liên tục.
   useEffect(() => {
@@ -144,7 +157,8 @@ export function RecordingFlow() {
       const ext = fileExtension(mimeType);
       const meta = buildUploadMeta(name, mimeType, ext, durationMs);
       await getStorageAdapter().upload(recordedBlob, meta);
-      setStep("done");
+      setUploaded(true);
+      setStep("confirm");
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Lỗi không xác định.");
       setStep("error");
@@ -167,10 +181,10 @@ export function RecordingFlow() {
 
   if (step === "intro") {
     return (
-      <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-5 px-4 pt-32 text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground/90 sm:text-4xl">Gương Màn Hình</h1>
+      <div key="intro" className="mx-auto flex w-full max-w-sm flex-col items-center gap-5 px-4 pt-20 text-center">
+        <h1 style={{ animationDelay: "0s" }} className="step-in-slow text-3xl font-extrabold tracking-tight text-foreground/90 sm:text-4xl">Gương Màn Hình</h1>
 
-        <p className="text-base font-semibold leading-relaxed text-foreground/55 sm:text-lg">
+        <p style={{ animationDelay: "0.25s" }} className="step-in-slow text-base font-semibold leading-relaxed text-foreground/55 sm:text-lg">
           Chiếc gương đầu tiên hôm nay
           <br />
           không treo trên tường.
@@ -178,15 +192,29 @@ export function RecordingFlow() {
           <span className="font-bold text-foreground">Nó nằm trong túi của bạn. ✨</span>
         </p>
 
+        <div style={{ animationDelay: "0.5s" }} className="step-in-slow mt-6">
+          <PrimaryButton onClick={handleIntro}>
+            🌟 Bắt đầu
+          </PrimaryButton>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "name") {
+    return (
+      <div key="name" className="mx-auto flex w-full max-w-sm flex-col items-center gap-5 px-4 pt-32 text-center">
+        <h2 style={{ animationDelay: "0s" }} className="step-in-slow text-2xl font-extrabold tracking-tight text-foreground/90 sm:text-3xl">Mình gọi bạn là gì nhỉ?</h2>
         <input
+          style={{ animationDelay: "0.25s" }}
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Tên của bạn"
-          className="w-full rounded-full border border-white/60 bg-white/70 px-5 py-3 text-center text-base font-semibold shadow-sm backdrop-blur-sm outline-none transition-all duration-200 placeholder:text-foreground/35 hover:border-violet-200 hover:bg-white/80 hover:shadow-md focus:border-violet-300 focus:bg-white/95 focus:shadow-md focus:shadow-violet-100/60 focus:ring-2 focus:ring-violet-200/50"
+          className="step-in-slow w-full rounded-full border border-white/60 bg-white/70 px-5 py-3 text-center text-base font-semibold shadow-sm backdrop-blur-sm outline-none transition-all duration-200 placeholder:text-foreground/35 hover:border-violet-200 hover:bg-white/80 hover:shadow-md focus:border-violet-300 focus:bg-white/95 focus:shadow-md focus:shadow-violet-100/60 focus:ring-2 focus:ring-violet-200/50"
         />
 
-        <label className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-white/50 bg-white/50 px-4 py-2.5 text-xs text-foreground/75 backdrop-blur-sm transition-all duration-200 hover:border-violet-200/60 hover:bg-white/75 hover:shadow-sm active:scale-[0.98]">
+        <label style={{ animationDelay: "0.45s" }} className="step-in-slow flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-white/50 bg-white/50 px-4 py-2.5 text-xs text-foreground/75 backdrop-blur-sm transition-all duration-200 hover:border-violet-200/60 hover:bg-white/75 hover:shadow-sm active:scale-[0.98]">
           <input
             type="checkbox"
             checked={consent}
@@ -204,9 +232,11 @@ export function RecordingFlow() {
           <span>Tôi đồng ý cho phép ghi lại và lưu trữ video này.</span>
         </label>
 
-        <PrimaryButton onClick={handleContinue} disabled={!name.trim() || !consent}>
-          🌟 Bắt đầu
-        </PrimaryButton>
+        <div style={{ animationDelay: "0.65s" }} className="step-in-slow">
+          <PrimaryButton onClick={handleContinue} disabled={!name.trim() || !consent}>
+            🚀 Tiếp tục
+          </PrimaryButton>
+        </div>
       </div>
     );
   }
@@ -216,7 +246,7 @@ export function RecordingFlow() {
       <PermissionGate status={status} error={error} onRequest={requestPermission}>
         <div className="flex flex-col items-center gap-4">
           <Recorder stream={stream} recording={false} />
-          <PrimaryButton onClick={handleBegin}>Bắt đầu</PrimaryButton>
+          <PrimaryButton onClick={handleBegin}>🦋 Bắt đầu</PrimaryButton>
         </div>
       </PermissionGate>
     );
@@ -224,15 +254,18 @@ export function RecordingFlow() {
 
   if (step === "countdown") {
     return (
-      <Recorder
-        stream={stream}
-        recording={false}
-        overlay={
-          <div className="flex h-full items-center justify-center bg-black/40">
-            <span className="text-7xl font-bold text-white">{count}</span>
-          </div>
-        }
-      />
+      <div className="flex flex-col items-center gap-4">
+        <Recorder
+          stream={stream}
+          recording={false}
+          overlay={
+            <div className="flex h-full items-center justify-center bg-black/40">
+              <span className="text-7xl font-bold text-white">{count}</span>
+            </div>
+          }
+        />
+        <p className="text-sm text-foreground/40">Đừng rời màn hình khi đang ghi nhé.</p>
+      </div>
     );
   }
 
@@ -240,28 +273,19 @@ export function RecordingFlow() {
     const totalSeconds = rolePhase ? ROLE_QUESTION_SECONDS : SECONDS_PER_QUESTION;
     const fill = (totalSeconds - secondsLeft) / totalSeconds;
     return (
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-4">
         <Recorder
           stream={stream}
           recording
           overlay={
             <>
-              {rolePhase ? (
-                <QuestionCard
-                  index={0}
-                  total={1}
-                  text="Bạn là Phụ Huynh hay Con?"
-                  fill={fill}
-                />
-              ) : (
-                <QuestionCard
-                  index={qIndex}
-                  total={QUESTIONS.length}
-                  text={QUESTIONS[qIndex].text}
-                  fill={fill}
-                />
-              )}
-              {/* Chạm vào khung để sang câu kế (tự sang khi hết giờ) */}
+              <QuestionCard
+                index={rolePhase ? 0 : qIndex + 1}
+                total={QUESTIONS.length + 1}
+                text={rolePhase ? "Bạn là Phụ Huynh hay Con?" : QUESTIONS[qIndex].text}
+                fill={fill}
+                fading={qFading}
+              />
               <button
                 type="button"
                 onClick={handleNext}
@@ -284,18 +308,28 @@ export function RecordingFlow() {
 
   if (step === "confirm") {
     return (
-      <Card>
-        <h2 className="text-2xl font-bold">Hoàn tất ghi hình</h2>
-        <p className="text-foreground/60">
-          Cảm ơn bạn đã trả lời. Bạn có thể gửi video hoặc lưu về máy.
+      <div key="confirm" className="mx-auto flex w-full max-w-lg flex-col items-center gap-6 px-6 pt-24 text-center">
+        <h2 className="step-in-slow text-3xl font-black leading-tight tracking-tight text-foreground/90 sm:text-4xl">
+          Mỗi đứa trẻ đều phản chiếu<br />
+          <span className="text-violet-500">cách người lớn nhìn chúng.</span><br />
+          <span className="text-2xl">✨</span>
+        </h2>
+        <p className="text-sm font-semibold text-foreground/60">
+          © Gương Màn Hình — Một trải nghiệm phản chiếu
         </p>
-        <PrimaryButton onClick={handleSend} disabled={!recordedBlob}>
-          {recordedBlob ? "📤 Gửi" : "Đang xử lý…"}
-        </PrimaryButton>
-        <SecondaryButton onClick={handleSaveLocally} disabled={!recordedBlob}>
-          {savedLocally ? "✅ Đã lưu về máy" : "💾 Lưu về máy"}
-        </SecondaryButton>
-      </Card>
+        <div className="mt-6 flex w-[200px] flex-col gap-3 [&>button]:w-full">
+          {uploaded ? (
+            <p className="text-sm font-semibold text-violet-500">✅ Đã gửi thành công!</p>
+          ) : (
+            <PrimaryButton onClick={handleSend} disabled={!recordedBlob}>
+              {recordedBlob ? "📤 Gửi" : "Đang xử lý…"}
+            </PrimaryButton>
+          )}
+          <SecondaryButton onClick={handleSaveLocally} disabled={!recordedBlob}>
+            {savedLocally ? "✅ Đã lưu về máy" : "💾 Lưu về máy"}
+          </SecondaryButton>
+        </div>
+      </div>
     );
   }
 
@@ -316,24 +350,13 @@ export function RecordingFlow() {
 
   // done
   return (
-    <Card>
-      <div className="text-3xl" aria-hidden>
-        🌟💗✨
-      </div>
-      <h2 className="text-2xl font-bold">Đã gửi thành công</h2>
-      <p className="text-foreground/60">Cảm ơn bạn đã chia sẻ một khoảnh khắc về gia đình. 💛</p>
-    </Card>
-  );
-}
-
-function Card({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mx-auto flex max-w-md flex-col items-center gap-4 rounded-2xl border border-foreground/10 p-8 text-center">
-      {children}
+    <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-5 px-4 pt-32 text-center">
+      <p style={{ animationDelay: "0s" }} className="step-in-slow text-4xl">🌟💗✨</p>
+      <h2 style={{ animationDelay: "0.25s" }} className="step-in-slow text-2xl font-extrabold tracking-tight text-foreground/90">Đã gửi thành công</h2>
+      <p style={{ animationDelay: "0.45s" }} className="step-in-slow text-base text-foreground/55 leading-relaxed">Cảm ơn bạn đã chia sẻ một khoảnh khắc về gia đình. 💛</p>
     </div>
   );
 }
-
 
 function PrimaryButton({
   children,
@@ -360,7 +383,7 @@ function PrimaryButton({
     <button
       onClick={handleClick}
       disabled={disabled}
-      className={`cursor-pointer rounded-2xl bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-600 px-12 py-4 text-lg font-semibold text-white shadow-lg shadow-violet-300/40 transition-all duration-200 hover:scale-[1.03] hover:shadow-xl hover:shadow-violet-300/50 active:scale-[0.97] active:from-fuchsia-600 active:via-violet-600 active:to-indigo-700 active:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100 ${rippling ? "btn-ripple" : ""}`}
+      className={`btn-glow cursor-pointer rounded-2xl bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-600 px-12 py-4 text-lg font-semibold text-white active:from-fuchsia-600 active:via-violet-600 active:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 ${rippling ? "btn-ripple" : ""}`}
     >
       {children}
     </button>
@@ -392,7 +415,7 @@ function SecondaryButton({
     <button
       onClick={handleClick}
       disabled={disabled}
-      className={`cursor-pointer rounded-full bg-gradient-to-r from-violet-400/80 to-indigo-400/80 px-8 py-3 font-semibold text-white shadow-md shadow-violet-200/40 transition-all duration-200 hover:scale-[1.02] hover:from-violet-400 hover:to-indigo-400 hover:shadow-lg hover:shadow-violet-200/50 active:scale-[0.97] active:from-violet-500 active:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 ${rippling ? "btn-ripple" : ""}`}
+      className={`btn-glow cursor-pointer rounded-full bg-gradient-to-r from-violet-400/80 to-indigo-400/80 px-8 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 ${rippling ? "btn-ripple" : ""}`}
     >
       {children}
     </button>

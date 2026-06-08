@@ -62,6 +62,49 @@ body {
   animation: glow 4s ease-in-out infinite;
 }
 
+/* Fade + slide-up khi chuyển màn */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.step-in {
+  animation: step-in 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+.step-in-slow {
+  animation: step-in 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Glow tỏa ra khi hover/click — thuần transition, không idle animation để tránh giật */
+.btn-glow {
+  box-shadow: 0 4px 22px rgba(167, 92, 255, 0.28);
+  transform: scale(1);
+  transition:
+    box-shadow 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform  3s   cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-glow:not(:disabled):hover {
+  transform: scale(1.04);
+  box-shadow:
+    0 8px 32px  rgba(167, 92, 255, 0.55),
+    0 0  64px   rgba(167, 92, 255, 0.22),
+    0 0  110px  rgba(167, 92, 255, 0.09);
+}
+.btn-glow:not(:disabled):active {
+  transform: scale(0.97);
+  box-shadow:
+    0 2px 16px  rgba(167, 92, 255, 0.5),
+    0 0  40px   rgba(167, 92, 255, 0.22);
+  transition:
+    box-shadow 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+    transform  0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* Ripple ring khi bấm nút */
 @keyframes btn-ripple {
   0% {
@@ -78,10 +121,23 @@ body {
   animation: btn-ripple 0.45s ease-out;
 }
 
+/* Icon tim heap heap */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
+}
+.heartbeat {
+  animation: heartbeat 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sparkle,
   .glow,
-  .btn-ripple {
+  .btn-ripple,
+  .btn-glow,
+  .step-in,
+  .step-in-slow,
+  .heartbeat {
     animation: none;
   }
 }

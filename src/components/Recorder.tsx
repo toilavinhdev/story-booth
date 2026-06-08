@@ -19,6 +19,7 @@ function formatTime(sec: number): string {
 export function Recorder({ stream, recording, overlay }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [videoReady, setVideoReady] = useState(false);
 
   useEffect(() => {
     const el = videoRef.current;
@@ -41,18 +42,19 @@ export function Recorder({ stream, recording, overlay }: Props) {
   }, [recording]);
 
   return (
-    <div className="relative aspect-[9/16] max-h-[70svh] w-full max-w-[22rem] overflow-hidden rounded-3xl bg-black shadow-xl">
+    <div className="relative aspect-[9/16] max-h-[80svh] w-full max-w-[32rem] overflow-hidden rounded-3xl bg-black shadow-xl">
       {/* Lật gương kiểu selfie cho preview (tự nhiên với người dùng) */}
       <video
         ref={videoRef}
         autoPlay
         muted
         playsInline
-        className="h-full w-full -scale-x-100 object-cover"
+        onCanPlay={() => setVideoReady(true)}
+        className={`h-full w-full -scale-x-100 object-cover transition-opacity duration-700 ${videoReady ? "opacity-100" : "opacity-0"}`}
       />
 
       {recording && (
-        <div className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1 text-sm font-medium text-white">
+        <div className="absolute left-4 top-10 z-10 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1 text-sm font-medium text-white">
           <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
           REC {formatTime(elapsed)}
         </div>
